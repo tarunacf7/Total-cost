@@ -1,0 +1,336 @@
+<html>
+<head>
+    <meta charset="utf-8" />
+    
+    <link rel="stylesheet" href="/app/styles/app.css">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Facilio Connected Apps SDK-->
+    <script type="text/javascript" src="https://static.facilio.com/apps-sdk/latest/facilio_apps_sdk.min.js"></script>
+    
+    <!-- VueJS-->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script>
+
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="//unpkg.com/element-ui/lib/umd/locale/en.js"></script>
+
+    <script type="text/javascript" src="/app/scripts/app.js"></script>
+</head>
+<body>
+    <div id="app" class="height100">
+    <div class="spinner-container" v-if="loading">
+        <div class="spinner"></div> 
+    </div>
+ 
+        <div v-else-if="items.length !=0 || items1.length !=0 || items3.length || 0">   
+        <!-- Service Cost Section -->
+        <div v-if="items.length !== 0">
+            <div class="headingvalues"><b>Service Cost</b></div>
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th class="id-column">Service</th>
+                        <th class="id-column">Start Time</th>
+                        <th class="id-column">End Time</th>
+                        <th class="id-column">Duration</th>
+                        <th class="id-column">Quantity</th>
+                        <th class="id-column">Unit Price ($)</th>
+                        <th class="id-column1">Cost ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="workorderService in items" :key="workorderService.id">
+                        <td class="service-column">{{ workorderService.service.name }}</td>
+                        <td class="service-column">{{ formatDate(workorderService.startTime || '---') }}</td>
+                        <td class="service-column">{{ formatDate(workorderService.endTime || '---') }}</td>
+                        <td class="service-column">{{ formatDuration(workorderService.duration || '---') }} </td>
+                        <td class="service-column">{{ workorderService.quantity || '---' }}</td>
+                        <td class="service-column">{{ formatDecimal(workorderService.unitPrice || '---') }}</td>
+                        <td class="service-column1">{{ formatDecimal(workorderService.cost || '---') }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+        </div>
+
+        <!-- Labour Cost Section -->
+        <div v-if="items1.length !== 0">
+            <div class="headingvalues"><b>Labour Cost</b></div>
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th class="id-column">Labour</th>
+                        <th class="id-column">Start Time</th>
+                        <th class="id-column">End Time</th>
+                        <th class="id-column">Duration</th>
+                        <th class="id-column">Rate per Hour ($)</th>
+                        <th class="id-column1">Total Amount ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="workorderLabour in items1" :key="workorderLabour.id">
+                        <td class="service-column">{{ workorderLabour.labour.name }}</td>
+                        <td class="service-column">{{ formatDate(workorderLabour.startTime || '---') }}</td>
+                        <td class="service-column">{{ formatDate(workorderLabour.endTime || '---') }}</td>
+                        <td class="service-column">{{ formatDuration(workorderLabour.duration || '---') }}</td>
+                        <td class="service-column">{{ workorderLabour.rate.baseCurrencyValue || '---' }}</td>
+                        <td class="service-column1">{{ formatDecimal(workorderLabour.totalAmount.baseCurrencyValue || '---') }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+        </div>
+
+        <!-- Misc Cost Section -->
+        <div v-if="items3.length !== 0">
+            <div class="headingvalues"><b>Misc Cost</b></div>
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th class="id-column">Name</th>
+                        <th class="id-column">Description</th>
+                        <th class="id-column">Unit Price ($)</th>
+                        <th class="id-column">Quantity</th>
+                        <th class="id-column">UOM</th>
+                        <th class="id-column1">Total Cost ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="workOrderActualsMiscCost in items3" :key="workOrderActualsMiscCost.id">
+                        <td class="service-column">{{ workOrderActualsMiscCost.name }}</td>
+                        <td class="service-column">{{ workOrderActualsMiscCost.description || '---' }}</td>
+                        <td class="service-column">{{ workOrderActualsMiscCost.unitPrice || '---' }}</td>
+                        <td class="service-column">{{ workOrderActualsMiscCost.quantity || '---' }}</td>
+                        <td class="service-column">{{ workOrderActualsMiscCost.unitOfMeasureVal || '---' }}</td>
+                        <td class="service-column1">{{ formatDecimal(workOrderActualsMiscCost.totalCost || '---') }}</td>
+                    </tr>
+                </tbody>
+            </table>
+           
+        </div>
+
+        <!-- Total Charges Section -->
+        <table class="custom-table">
+            <tbody>
+                <tr class="d-flex">
+                    <td class="cost-coloumn">Service Charges</td>
+                    <td class="unitPrice">{{ formatDecimal(serviceCost) || "---" }}</td>
+                </tr>
+                <tr class="d-flex">
+                    <td class="cost-coloumn">Labour Charges</td>
+                    <td class="unitPrice">{{ formatDecimal(labourCost) || "---" }}</td>    
+                </tr>
+                <tr class="d-flex">
+                    <td class="cost-coloumn">Misc Charges</td>
+                    <td class="unitPrice">{{ formatDecimal(miscCost) || "---" }}</td>    
+                </tr>
+                <tr class="d-flex">
+                    <td class="cost-coloumn"><b>Total Charges</b></td>
+                    <td class="unitPrice">{{ formatDecimal(totalcostfinal) }}</td>
+                </tr>      
+            </tbody>
+        </table>
+    </div>
+    <div v-else >
+
+        <div class="nodataimg" >
+            <img src="/app/images/img.svg" class="image-nodata"/>
+            
+        </div>
+        <div class="bottomtext"> No Data Added Yet 
+        </div>
+        <div class="bottomtextsmall"> It seems like there are no actuals added in the Work Order yet
+        </div>
+
+    
+        
+        </div>
+</div>
+    
+    <script type="text/javascript">
+        var app = new Vue({
+            el: '#app',
+            data () {
+                return {
+                    loading:true,
+                    criteriaMap: {},
+                    items: [],
+                    items1: [],
+                    items2: [],
+                    items3 :[],
+                    isMobile: false,
+                    woid: null,
+                    serialNumber: null,
+                    serviceCost: null,
+                    labourCost: null,
+                    totalcostfinal: null,
+                    miscCost : null 
+                }
+            },
+            mounted() {
+                window.facilioApp = FacilioAppSDK.init();
+                window.facilioApp.on("app.loaded", async(data) => { 
+                    this.isMobile = (data.currentOrg == null);
+                    this.woid = data.context.id;
+                    this.serialNumber = data.context.serialNumber;
+                    this.criteriaMap = data.context.id;
+                    this.totalcostfinal=data.context.totalCost;
+
+                    let workorderResponse = await window.facilioApp.api.fetchRecord("workorder", {id: data.context.id});
+                    data.context = workorderResponse.workorder;
+                    console.log('# workorderResponse: ', data.context);
+                    await this.totalCost(this.criteriaMap);
+                    await this.totalLabour(this.criteriaMap);
+                    await this.totalAmount (this.criteriaMap);
+                    await this.totalMisc(this.criteriaMap);
+                    
+                });
+            },
+            methods: {
+                async totalCost(input) {
+                    console.log("logger: ", input)
+                    try {
+                        let { data } = await window.facilioApp.request.invokeFacilioAPI(`/v3/unrelated/workorder/fetchAll/workorderService?moduleName=workorderService&viewName=all&filters=%7B%22parentId%22%3A%7B%22operatorId%22%3A9%2C%22value%22%3A%5B%22` + input + `%22%5D%7D%7D&page=1&perPage=5&force=false`, {
+                            method: 'GET'
+                        });
+                        if (data != null) {
+                            console.log("res", data);
+                            this.items = data.workorderService || [];
+                            console.log("items", this.items);
+                        }
+                    } catch(error) {
+                        console.error('Error fetching data:', error);
+                    }
+                },
+
+                 async totalLabour(input) {
+                    console.log("logger: ", input)
+                    try {
+                        let { data } = await window.facilioApp.request.invokeFacilioAPI(`/v3/unrelated/workorder/fetchAll/workorderLabour?moduleName=workorderLabour&viewName=all&filters=%7B%22parentId%22%3A%7B%22operatorId%22%3A9%2C%22value%22%3A%5B%22`+input+`%22%5D%7D%7D&page=1&perPage=5&force=false`, {
+                            method: 'GET'
+                        });
+                        if (data != null) {
+                            console.log("lab", data);
+                            this.items1 = data.workorderLabour || [];
+                            console.log("items", this.items1);
+                        }
+                    } catch(error) {
+                        console.error('Error fetching data:', error);
+                    }
+                },
+
+                 async totalAmount(input) {
+                     this.loading;
+                    console.log("logger: ", input)
+                    try {
+                        let { data } = await window.facilioApp.request.invokeFacilioAPI(`/v3/modules/workorder/`+ input +`/relatedList/workorderCost/parentId`, {
+                            method: 'GET'
+                        });
+                        if (data != null) {
+                            console.log("total cost", data);
+                            this.items2 = data.workorderCost || [];
+                            console.log("items", this.items2);
+                           
+                            let serviceCostobject = data.workorderCost.find(costRecord => costRecord.costTypeEnum=="service" );
+                            if (serviceCostobject!= null)
+                            {
+                                this.serviceCost=serviceCostobject.cost;
+                            }
+
+                            let labourCostobject=data.workorderCost.find(costRecord=> costRecord.costTypeEnum=="labour");
+                            if (labourCostobject!=null)
+                            {
+                                this.labourCost=labourCostobject.cost;
+                            }
+
+                            let miscCostobject=data.workorderCost.find(costRecord=> costRecord.costTypeEnum=="miscCost");
+                            if (miscCostobject!=null)
+                            {
+                                this.miscCost=miscCostobject.cost;
+                            }
+
+                        }
+                    } catch(error) {
+                        console.error('Error fetching data:', error);
+                    }
+                    this.loading=false;
+                },
+
+
+                async totalMisc(input) {
+                    console.log("logger: ", input)
+                    try {
+                        let { data } = await window.facilioApp.request.invokeFacilioAPI(`/v3/unrelated/workorder/fetchAll/workOrderActualsMiscCost?moduleName=workOrderActualsMiscCost&viewName=all&filters=%7B%22workorder%22%3A%7B%22operatorId%22%3A9%2C%22value%22%3A%5B%22`+ input +`%22%5D%7D%7D&page=1&perPage=50&force=true&search=`, {
+                            method: 'GET'
+                        });
+                        if (data != null) {
+                            console.log("misc", data);
+                            this.items3 = data.workOrderActualsMiscCost || [];
+                            console.log("items3", this.items3);
+                        }
+                    } catch(error) {
+                        console.error('Error fetching data:', error);
+                    }
+                },
+
+
+
+
+
+
+
+
+                
+
+
+                
+                // Method to format timestamps to 'DD-MMM-YYYY HH:mm'
+                formatDate(timestamp) {
+                    // Convert seconds/milliseconds to milliseconds
+                    if (!timestamp) return '';
+                    const date = new Date(timestamp); // Assuming timestamp is in milliseconds
+                    const options = { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+                    return date.toLocaleDateString('en-GB', options).replace(',', '');
+
+                },
+   
+                formatDecimal(value){
+                   let rounded =Math.round(value);
+
+                    return Number(rounded).toFixed(2);
+                },
+
+                // Method to calculate duration between start and end time
+                formatDuration(seconds) {   
+                // Calculate the number of days, hours, minutes, and seconds
+                const days = Math.floor(seconds / (24 * 60 * 60));
+                const hours = Math.floor((seconds % (24 * 60 * 60)) / (60 * 60));
+                const minutes = Math.floor((seconds % (60 * 60)) / 60);
+                const remainingSeconds = seconds % 60;
+                // Build the duration string
+                let duration = '';
+                if (days > 0) {
+                    duration += `${days} day${days !== 1 ? 's' : ''} `;
+                }
+                if (hours > 0) {
+                    duration += `${hours} hr${hours !== 1 ? 's' : ''} `;
+                }
+                if (minutes > 0) {
+                    duration += `${minutes} min${minutes !== 1 ? 's' : ''} `;
+                }
+
+                return duration.trim(); // Remove any trailing spaces
+            },   
+
+                
+                
+
+                
+                
+            }
+            
+        });
+    </script>
+</body>
+</html>
